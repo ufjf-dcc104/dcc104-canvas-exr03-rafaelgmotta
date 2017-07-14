@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>DCC104 - Flappy Bird</title>
+    <script src="ImageLoader.js" charset="utf-8"></script>
+    <script src="Sprite.js" charset="utf-8"></script>
+    <script src="Level.js" charset="utf-8"></script>
+  </head>
+  <body align = center>
+    <h1>DCC104 - Flappy Bird</h1>
+    <canvas style="background: url('back.png'); background-size:cover; background-repeat:no-repeat"></canvas>
+    <script>
+      var eCanvas = document.getElementsByTagName("canvas")[0];
+      eCanvas.width = 600;
+      eCanvas.height = 380;
+      var ctx = eCanvas.getContext("2d");
+
+      var il = new ImageLoader();
+      il.load("pc", "flappy.png");
+
+
+      var fps = 60;
+      var atual = new Date();
+      var anterior = new Date();
+      var dt = 1/fps;
+	    var colidiu = false
+
+      var bird = new Sprite();
+      bird.x = 30;
+      bird.y = 40;
+      bird.angle = -90;
+  	  bird.grav = 280;
+  	  bird.score = 0;
+      var level = new Level();
+      level.imageLib = il;
+      level.init(eCanvas.width, eCanvas.height);
+
+      desenha();
+
+
+
+
+      function desenha(){
+        requestAnimationFrame(desenha);
+        atual = new Date();
+        dt = (atual - anterior)/1000;
+        ctx.clearRect(0,0,eCanvas.width, eCanvas.height)
+        ctx.strokeRect(0,0,eCanvas.width, eCanvas.height)
+        ctx.fillStyle = "darkgreen";
+	
+    		if(!colidiu) {
+    			bird.cooldown-=dt
+    			bird.mover(dt);
+    			level.mover(dt*1.3, bird);
+    			level.spawnParedes(bird.score)
+    		}
+    		
+        level.colidiuCom(bird,
+          function(inimigo, alvo){
+            inimigo.color = "red";
+    	      colidiu = true;
+          }
+        );
+
+        if((bird.y >= eCanvas.height)||(bird.y < 0)) colidiu = true;
+
+        bird.desenharImg(ctx, il.images["pc"]);
+        level.desenhar(ctx);
+        level.desenharInfo(ctx, bird, colidiu)
+
+        anterior = atual;
+      }
+
+      addEventListener("keydown", function(e){
+        switch (e.keyCode) {
+          case 32:
+      			if(bird.cooldown <= 0) {
+      				level.boost(bird);
+      				bird.cooldown = 0.5
+      			}
+            break;
+          default:
+            break;
+        }
+      });
+    </script>
+  </body>
+</html>
